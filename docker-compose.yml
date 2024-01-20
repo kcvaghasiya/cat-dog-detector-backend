@@ -1,0 +1,44 @@
+version: "3"
+
+services:
+  web:
+    image: mgabani/dog_cat_backend:v1
+    container_name: cat_dog_app
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "python manage.py makemigrations --noinput &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/code
+      - data:/db.sqlite3
+    env_file:
+      - .env
+    depends_on:
+      - minio
+    networks:
+      backend_network:
+
+  minio:
+      image: minio/minio
+      container_name: minio_db
+      volumes:
+        - minio:/minio_files
+      environment:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+      command: 'minio server /minio_files --console-address ":9001"'
+      ports:
+        - 9000:9000
+        - 9001:9001
+      networks:
+        backend_network:
+
+
+volumes:
+  data:
+  minio:
+
+networks:
+  backend_network:
